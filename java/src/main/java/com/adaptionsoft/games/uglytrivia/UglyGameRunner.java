@@ -1,11 +1,9 @@
 
-package com.adaptionsoft.games.trivia.runner;
+package com.adaptionsoft.games.uglytrivia;
 import java.util.Random;
 
-import com.adaptionsoft.games.uglytrivia.Game;
 
-
-public class GameRunner {
+public class UglyGameRunner {
 
 	private static boolean notAWinner;
 
