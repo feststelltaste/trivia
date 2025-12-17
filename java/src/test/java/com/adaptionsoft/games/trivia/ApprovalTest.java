@@ -1,5 +1,4 @@
 package com.adaptionsoft.games.trivia;
-import com.adaptionsoft.games.trivia.runner.AiGameRunner;
 import com.adaptionsoft.games.trivia.runner.GameRunner;
 import org.approvaltests.Approvals;
 import org.approvaltests.reporters.JunitReporter;
@@ -23,8 +22,8 @@ public class ApprovalTest {
         PrintStream ps = new PrintStream(baos);
         System.setOut(ps);
 
-        AiGameRunner.main(new String[0]);
-
+        GameRunner.main(new String[0]);
+        
         System.out.flush();
         Approvals.verify(baos.toString());
     }
