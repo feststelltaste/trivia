@@ -16,8 +16,8 @@ public class GameRunner {
 		aGame.add("Pat");
 		aGame.add("Sue");
 		
-		Random rand = new Random();
-	
+		Random rand = new Random(42);
+
 		do {
 			
 			aGame.roll(rand.nextInt(5) + 1);
