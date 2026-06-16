@@ -2,8 +2,28 @@
 
 ## mikado.md data structure
 
-<slug>.md is the single source of truth (slug derived from the goal). Use YAML frontmatter followed by a human-readable tree.
-Example: goal "Upgrade Postgres driver v3 -> v5" -> slug "upgrade-postgres-driver-v3-v5" -> files: upgrade-postgres-driver-v3-v5.md + upgrade-postgres-driver-v3-v5.dot + upgrade-postgres-driver-v3-v5.svg
+plan_<slug>.md is the single source of truth (slug derived from the goal). Use YAML frontmatter followed by a human-readable tree.
+Example: goal "Upgrade Postgres driver v3 -> v5" -> slug "upgrade-postgres-driver-v3-v5" -> files: plan_upgrade-postgres-driver-v3-v5.md + plan_upgrade-postgres-driver-v3-v5.dot + plan_upgrade-postgres-driver-v3-v5.svg
+
+Every plan_<slug>.md MUST include a `## How to execute` section immediately before `## Graph`.
+This section makes the plan self-contained so any agent can execute it without the skill loaded.
+Use this template (substituting <slug> with the actual slug):
+
+```markdown
+## How to execute
+
+1. Find all leaf nodes: status=open with no open children.
+2. Implement one leaf at a time — do not start the next until the current is done.
+3. After completing each leaf:
+   a. Set its status to `done` in this file.
+   b. Regenerate `plan_<slug>.dot` and re-render the SVG:
+      `dot -Tsvg plan_<slug>.dot > plan_<slug>.svg`
+   c. Commit with the node label as the commit message.
+4. When all children of a problem node are done, that problem becomes the next leaf.
+5. Repeat until the root goal (G1) is marked done.
+
+**One node = one commit. Never batch multiple nodes into a single commit.**
+```
 
 ```markdown
 ---
@@ -155,12 +175,12 @@ digraph mikado {
 The skill runs this automatically after every graph change:
 
 ```sh
-dot -Tsvg <slug>.dot > <slug>.svg
+dot -Tsvg plan_<slug>.dot > plan_<slug>.svg
 ```
 
 Example:
 ```sh
-dot -Tsvg upgrade-postgres-driver-v3-v5.dot > upgrade-postgres-driver-v3-v5.svg
+dot -Tsvg plan_upgrade-postgres-driver-v3-v5.dot > plan_upgrade-postgres-driver-v3-v5.svg
 ```
 
 Or paste DOT content into https://dreampuf.github.io/GraphvizOnline/

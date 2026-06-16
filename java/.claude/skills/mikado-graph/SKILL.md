@@ -26,9 +26,12 @@ They look like rectangles but with fillcolor="#ffe8cc" (orange tint) to signal
 **Start a new graph**
 User says: "I want to [goal]"
 Derive a kebab-case slug from the goal (e.g. "Upgrade Postgres v3->v5" -> "upgrade-postgres-v3-v5").
-Create <slug>.md with YAML frontmatter + <slug>.dot.
-Then immediately run: dot -Tsvg <slug>.dot > <slug>.svg
+Create plan_<slug>.md with YAML frontmatter + plan_<slug>.dot.
+Then immediately run: dot -Tsvg plan_<slug>.dot > plan_<slug>.svg
 Show the DOT content and confirm the SVG was written.
+
+The plan_ prefix on all three files marks them as a machine-readable plan that agents
+can discover and consume as a task list.
 
 **Surface non-obvious impacts**
 Whenever a new goal or problem node is added, proactively scan for hidden coupling
@@ -51,11 +54,26 @@ Add B's id to A's depends_on list in the YAML. Render as a dashed arrow B -> A
 
 **Show the graph**
 User says: "render" or "show graph" or "update"
-Re-render <slug>.dot from <slug>.md, run dot -Tsvg <slug>.dot > <slug>.svg, show DOT.
+Re-render plan_<slug>.dot from plan_<slug>.md, run dot -Tsvg plan_<slug>.dot > plan_<slug>.svg, show DOT.
+
+## Execution protocol
+
+When an agent is asked to execute a plan from a plan_<slug>.md file:
+
+1. Read plan_<slug>.md to identify all leaf nodes (status=open, no open children)
+2. Work through leaves one at a time — do not start the next until the current is done
+3. After completing each leaf:
+   a. Set its status to done in plan_<slug>.md
+   b. Update plan_<slug>.dot and re-render plan_<slug>.svg
+   c. Create a git commit with the node label as the commit message
+4. After all leaves of a problem are done, that problem becomes the next leaf — repeat
+5. Continue until the root goal node is marked done
+
+Never batch multiple nodes into one commit. One node = one commit.
 
 ## Rules
 
-- <slug>.md is the source of truth -- edit it, then regenerate <slug>.dot
+- plan_<slug>.md is the source of truth -- edit it, then regenerate plan_<slug>.dot
 - Slug = kebab-case of the goal, max ~5 words, no special chars except hyphens
 - Store the slug in the YAML frontmatter as field: slug
 - Leaf nodes with status: open and no children -- render as ellipse (shape=ellipse)
@@ -67,7 +85,7 @@ Re-render <slug>.dot from <slug>.md, run dot -Tsvg <slug>.dot > <slug>.svg, show
 - Cross-dependencies (depends_on) render as dashed arrows: dependency -> dependent  [style=dashed color=gray]
 - A node is only a leaf (ellipse/actionable) if it has no open children AND no open depends_on targets
 - Always show the full DOT block after any change, with filename as a comment header
-- After writing <slug>.dot, immediately run: dot -Tsvg <slug>.dot > <slug>.svg
+- After writing plan_<slug>.dot, immediately run: dot -Tsvg plan_<slug>.dot > plan_<slug>.svg
 - Tell the user the SVG was generated and its path
 - Node ID prefix for impacts: I<n> (e.g. I1, I2) to distinguish from P<n> problems
 - See REFERENCE.md for full data structure and DOT generation examples
