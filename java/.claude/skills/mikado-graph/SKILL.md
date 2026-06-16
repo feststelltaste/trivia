@@ -5,6 +5,8 @@ description: Plan and track a complex refactoring using the Mikado Method. Trigg
 
 # Mikado Graph
 
+The Mikado Method is an incremental refactoring technique: try a change, note what breaks, revert, then fix the blockers first. This skill tracks that process as a dependency graph — each node is a goal, a blocker, or a leaf task you can act on right now.
+
 ## Node types
 
 | Shape           | Type        | Meaning                                           |
@@ -20,6 +22,28 @@ DB columns storing class/field names, serialized JSON shapes, config keys,
 event-sourcing event names, reflection-based lookups, generated code, etc.
 They look like rectangles but with fillcolor="#ffe8cc" (orange tint) to signal
 "this requires work outside the codebase".
+
+## Execution protocol (agentic mode)
+
+When asked to execute a plan from a `plan_<slug>.md` file, follow the **try → fail → add → revert** loop:
+
+1. Read `plan_<slug>.md` and identify all current leaf nodes (status=open, no open children, no open depends_on targets).
+2. Pick one leaf. Attempt the implementation — make the code change.
+3. Verify: run the test suite (or whatever verification is configured for this project).
+4. **If verification fails:**
+   a. Inspect what broke. That failure is a new blocker you did not know about.
+   b. **Revert the code change immediately** (e.g. `git checkout -- <file>`). The codebase must stay green.
+   c. Add a new child node to the current leaf in `plan_<slug>.md` — a `problem` node for the blocker you just discovered.
+   d. Update `plan_<slug>.dot` and re-render `plan_<slug>.svg`.
+   e. The current leaf is no longer a leaf (it now has an open child). Start the loop again from step 1 with the new leaf.
+5. **If verification passes:**
+   a. Set the node's `status: done` in `plan_<slug>.md`.
+   b. Update `plan_<slug>.dot` and re-render `plan_<slug>.svg`.
+   c. Commit: the node label is the commit message. One node = one commit.
+   d. Loop back to step 1.
+6. Stop when the root goal node is the only remaining open node and all its children are done — then attempt the goal itself.
+
+**Never fix a failure in-place and commit anyway.** A failing verification means the graph is incomplete — revert and grow the graph instead.
 
 ## Workflow
 
@@ -39,9 +63,10 @@ and add impact nodes for anything found. Ask the user to confirm before adding.
 See REFERENCE.md "Impact checklist" for the full list of areas to probe.
 
 **Discover a problem**
-User says: "I tried [X], hit problem: [Y]"
+User says: "I tried [X], hit problem: [Y]" — or the agent's own verification fails during execution.
 Add a problem or impact rectangle node as child of X (use type=impact if it is
 a non-obvious side-effect). If X was a todo leaf, it is no longer a leaf.
+Revert any partial change before continuing — the codebase must stay green.
 
 **Mark solved**
 User says: "I solved [X]" or "done: [X]"

@@ -3,6 +3,7 @@
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
+        "file_pattern": ".*\\.java$",
         "hooks": [
           {
             "type": "command",
@@ -10,7 +11,7 @@
           },
           {
             "type": "agent",
-            "prompt": "You are a test analysis agent for a Java trivia game refactoring session.\n\nA Java file was just edited. The approval test has already run and may have produced a diff. Your job is to interpret the results and give the main agent actionable feedback.\n\nHook input: $ARGUMENTS\n\nSteps:\n1. Read the received output file at: src/test/java/com/adaptionsoft/games/trivia/ApprovalTest.testApproval.received.txt\n2. Read the approved output file at: src/test/java/com/adaptionsoft/games/trivia/ApprovalTest.testApproval.approved.txt\n3. If they are identical, return { \"ok\": true }\n4. If they differ, analyze the diff and return { \"ok\": false, \"reason\": \"<your diagnosis>\" }\n\nWhen writing the reason, be specific about what game behavior changed. For example:\n- Which player is affected\n- Whether a question was skipped, a wrong answer was triggered incorrectly, a player escaped the penalty box when they shouldn't have, etc.\n- Which lines of code are likely responsible\n\nDo not just describe the diff — explain what it means in terms of game logic.",
+            "prompt": "You are a test analysis agent.\n\nHook input: $ARGUMENTS\n\nA file was just edited. Check whether an approval test ran by searching for any *.received.txt file under the current directory. If none exists, return { \"ok\": true } — no test ran for this edit.\n\nIf a received file exists, find the corresponding *.approved.txt file (same base name) and compare them.\n1. If they are identical, return { \"ok\": true }\n2. If they differ, analyze the diff and return { \"ok\": false, \"reason\": \"<your diagnosis>\" }\n\nIn the reason, explain what the diff means in terms of observable behavior change — not just what lines changed, but what the system now does differently.",
             "timeout": 60
           }
         ]
