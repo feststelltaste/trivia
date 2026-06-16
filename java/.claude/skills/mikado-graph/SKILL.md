@@ -23,7 +23,7 @@ event-sourcing event names, reflection-based lookups, generated code, etc.
 They look like rectangles but with fillcolor="#ffe8cc" (orange tint) to signal
 "this requires work outside the codebase".
 
-## Execution protocol (agentic mode)
+## Execution protocol
 
 When asked to execute a plan from a `plan_<slug>.md` file, follow the **try → fail → add → revert** loop:
 
@@ -80,21 +80,6 @@ Add B's id to A's depends_on list in the YAML. Render as a dashed arrow B -> A
 **Show the graph**
 User says: "render" or "show graph" or "update"
 Re-render plan_<slug>.dot from plan_<slug>.md, run dot -Tsvg plan_<slug>.dot > plan_<slug>.svg, show DOT.
-
-## Execution protocol
-
-When an agent is asked to execute a plan from a plan_<slug>.md file:
-
-1. Read plan_<slug>.md to identify all leaf nodes (status=open, no open children)
-2. Work through leaves one at a time — do not start the next until the current is done
-3. After completing each leaf:
-   a. Set its status to done in plan_<slug>.md
-   b. Update plan_<slug>.dot and re-render plan_<slug>.svg
-   c. Create a git commit with the node label as the commit message
-4. After all leaves of a problem are done, that problem becomes the next leaf — repeat
-5. Continue until the root goal node is marked done
-
-Never batch multiple nodes into one commit. One node = one commit.
 
 ## Rules
 
